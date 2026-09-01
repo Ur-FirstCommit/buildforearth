@@ -5,7 +5,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 
 function registrationDevApi(): Plugin {
   return { name: 'registration-dev-api', configureServer(server) {
-    const env = loadEnv('public', process.cwd(), '')
+    const env = loadEnv(server.config.mode, process.cwd(), '')
     if (env.RESEND_API_KEY && !process.env.RESEND_API_KEY) process.env.RESEND_API_KEY = env.RESEND_API_KEY
     server.middlewares.use('/api/register', (req: IncomingMessage, res: ServerResponse, next) => {
       if (req.method !== 'POST' && req.method !== 'OPTIONS') return next()

@@ -4,4 +4,3 @@ dist/
 .DS_Store
 .env.public
 .env.local
-.env.local
