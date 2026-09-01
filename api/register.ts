@@ -1,7 +1,7 @@
+import { Resend } from 'resend'
+
 type RequestLike = { method?: string; body?: unknown }
 type ResponseLike = { status: (code: number) => ResponseLike; json: (body: unknown) => void; setHeader: (name: string, value: string) => void }
-
-function escapeHtml(value: string) { return value.replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character] ?? character) }
 
 export default async function handler(req: RequestLike, res: ResponseLike) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -18,10 +18,16 @@ export default async function handler(req: RequestLike, res: ResponseLike) {
 
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey || apiKey === '<your-resend-api-key>') return res.status(500).json({ message: 'Registration is not configured.' })
-  const safeName = escapeHtml(name)
-  const safeEmail = escapeHtml(email)
-  let resend: Response
-  try { resend = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ from: 'Build for Earth <onboarding@resend.dev>', to: ['hello@firstcommit.xyz'], reply_to: email, subject: `New Build for Earth registration: ${name}`, html: `<h2>New Build for Earth registration</h2><p><strong>Name:</strong> ${safeName}</p><p><strong>Email:</strong> ${safeEmail}</p>` }) }) } catch { return res.status(502).json({ message: 'Registration provider unavailable.' }) }
-  if (!resend.ok) return res.status(502).json({ message: 'Registration provider unavailable.' })
-  return res.status(200).json({ ok: true })
+  const nameParts = name.split(/\s+/)
+  const firstName = nameParts.shift() ?? ''
+  const lastName = nameParts.join(' ')
+  const resend = new Resend(process.env.RESEND_API_KEY!)
+  let result: Awaited<ReturnType<typeof resend.contacts.create>>
+  try { result = await resend.contacts.create({ email, firstName, lastName, unsubscribed: false }) } catch { return res.status(502).json({ message: 'Registration provider unavailable.' }) }
+  if (result.error) {
+    const duplicate = result.error.statusCode === 409 || /already exists|already registered|duplicate/i.test(`${result.error.name} ${result.error.message}`)
+    if (duplicate) return res.status(409).json({ code: 'duplicate', message: 'This email is already registered.' })
+    return res.status(502).json({ message: 'Registration provider unavailable.' })
+  }
+  return res.status(201).json({ ok: true })
 }

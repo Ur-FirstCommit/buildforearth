@@ -29,3 +29,7 @@
 @media(max-width:420px){.map-sphere-layer{width:210px;height:210px}}
 
 .nav-wrap{left:50%;right:auto;width:100%;transform:translateX(-50%)}
+
+.nav-wrap{transition-duration:.72s;transition-timing-function:cubic-bezier(.16,1,.3,1)}.nav-wrap.scrolled{top:21px}.form-message{color:var(--green)!important;font-size:11px!important;margin:17px 0 -5px!important}
+@media(max-width:800px){.nav-wrap.scrolled{top:14px}}
+@media(prefers-reduced-motion:reduce){.nav-wrap{transition:none!important}}
