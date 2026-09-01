@@ -14,7 +14,7 @@ function registrationDevApi(): Plugin {
       req.on('data', chunk => { body += chunk })
       req.on('end', () => {
         const response = { setHeader: (name: string, value: string) => res.setHeader(name, value), status(code: number) { res.statusCode = code; return response }, json(payload: unknown) { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(payload)) } }
-        void registerHandler({ method: req.method, body }, response).catch(() => { if (!res.writableEnded) { res.statusCode = 500; res.end(JSON.stringify({ message: 'Registration unavailable.' })) } })
+        void registerHandler({ method: req.method, body }, response).catch(() => { if (!res.writableEnded) { res.statusCode = 500; res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ success: false, error: 'Registration unavailable.' })) } })
       })
     })
   } }
