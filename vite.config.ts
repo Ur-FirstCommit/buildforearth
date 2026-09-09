@@ -7,6 +7,7 @@ function registrationDevApi(): Plugin {
   return { name: 'registration-dev-api', configureServer(server) {
     const env = loadEnv(server.config.mode, process.cwd(), '')
     if (env.RESEND_API_KEY && !process.env.RESEND_API_KEY) process.env.RESEND_API_KEY = env.RESEND_API_KEY
+    if (env.TURNSTILE_SECRET_KEY && !process.env.TURNSTILE_SECRET_KEY) process.env.TURNSTILE_SECRET_KEY = env.TURNSTILE_SECRET_KEY
     server.middlewares.use('/api/register', (req: IncomingMessage, res: ServerResponse, next) => {
       if (req.method !== 'POST' && req.method !== 'OPTIONS') return next()
       let body = ''
